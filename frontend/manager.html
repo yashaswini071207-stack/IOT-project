@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Smart Cart | Store Manager Portal &amp; Analytics (2FA)</title>
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="manager-body">
+
+	<!-- =========================================================
+	     1. 2FA SECURITY GATE (STORE MANAGER AUTHORIZATION)
+	========================================================= -->
+	<main id="manager-auth-container" class="auth-wrapper" role="main">
+		<div class="auth-card">
+			<div class="auth-header">
+				<div class="auth-badge">&#128274; 2-Factor Hardware Authentication</div>
+				<h1>Store Manager Portal</h1>
+				<p class="auth-desc">Restricted administrative access. Please swipe your authorized Manager RFID Keycard and enter your security PIN to unlock the live dashboard.</p>
+			</div>
+
+			<form id="manager-auth-form" class="auth-form" novalidate>
+				<!-- Factor 1: Manager RFID Badge -->
+				<div class="form-group">
+					<label for="auth-rfid-input">
+						<span class="auth-factor-pill">Factor 1</span>
+						<strong>Manager RFID Keycard</strong>
+					</label>
+					<div class="input-with-button">
+						<input
+							type="text"
+							id="auth-rfid-input"
+							name="rfid"
+							placeholder="Swipe Manager RFID Keycard..."
+							autocomplete="off"
+							required
+						>
+						<button type="button" id="scan-manager-tag-btn" class="button button-primary">
+							<span aria-hidden="true">&#128246;</span> Scan Keycard
+						</button>
+					</div>
+					<div id="manager-scan-status" class="field-scan-status" role="status" hidden></div>
+					<small class="field-hint">Simulate swiping your staff RFID master badge.</small>
+				</div>
+
+				<!-- Factor 2: Security PIN -->
+				<div class="form-group">
+					<label for="auth-pin-input">
+						<span class="auth-factor-pill">Factor 2</span>
+						<strong>Manager Security PIN</strong>
+					</label>
+					<div class="input-with-icon">
+						<span class="field-icon" aria-hidden="true">&#128273;</span>
+						<input
+							type="password"
+							id="auth-pin-input"
+							name="pin"
+							placeholder="Enter 4-digit security PIN..."
+							maxlength="8"
+							autocomplete="current-password"
+							required
+						>
+					</div>
+					<small class="field-hint">Default store manager PIN configured in .env.</small>
+				</div>
+
+				<!-- Demo Helper Box -->
+				<div class="demo-helper-box">
+					<div class="demo-helper-text">
+						<strong>Demo Evaluation:</strong> Auto-fill configured manager credentials.
+					</div>
+					<button type="button" id="fill-demo-creds-btn" class="button button-outline button-sm">
+						&#9889; Fill Admin Credentials (RFID-ADMIN / 1234)
+					</button>
+				</div>
+
+				<!-- Feedback banner for authentication errors -->
+				<div id="auth-feedback" class="feedback-banner feedback-error" role="alert" hidden></div>
+
+				<!-- Submit Button -->
+				<button type="submit" id="auth-submit-btn" class="button button-primary button-full">
+					<span aria-hidden="true">&#128275;</span> Unlock Manager Dashboard
+				</button>
+			</form>
+
+			<div class="auth-footer-links">
+				<a href="index.html">&larr; Return to Home</a> &bull;
+				<a href="customer.html">Open Customer Cart View &rarr;</a>
+			</div>
+		</div>
+	</main>
+
+	<!-- =========================================================
+	     2. MANAGER ANALYTICS DASHBOARD (UNLOCKED UPON 2FA)
+	========================================================= -->
+	<div id="manager-dashboard-container" class="manager-dashboard" hidden>
+		<!-- Manager Top Navigation Bar -->
+		<header class="manager-topbar">
+			<div class="manager-topbar-brand">
+				<a href="index.html" class="nav-back-link" title="Return to Main Portal">&larr; Home</a>
+				<div>
+					<p class="manager-eyebrow">&#128202; IOT SMART CART SYSTEM</p>
+					<h1 class="manager-title">Store Manager Operations &amp; Analytics</h1>
+				</div>
+			</div>
+
+			<div class="manager-topbar-actions">
+				<div class="manager-session-badge">
+					<span class="status-dot status-online" aria-hidden="true"></span>
+					<span id="session-manager-badge">Manager: RFID-ADMIN</span>
+				</div>
+				<a href="customer.html" class="button button-outline button-sm" target="_blank" title="Open customer interface in new tab">
+					&#128722; Customer View
+				</a>
+				<button type="button" id="refresh-dashboard-btn" class="button button-outline button-sm" title="Reload live metrics from MongoDB">
+					&#128259; Refresh Data
+				</button>
+				<button type="button" id="logout-btn" class="button button-danger button-sm" title="Lock manager console">
+					&#128274; Lock / Logout
+				</button>
+			</div>
+		</header>
+
+		<!-- Main Dashboard Content -->
+		<main class="manager-main-content">
+			<!-- System Feedback Toast/Banner -->
+			<div id="manager-feedback" class="feedback-banner feedback-success" role="status" hidden></div>
+
+			<!-- 1. KPI Metric Cards Grid -->
+			<section class="kpi-grid" aria-label="Key Performance Indicators">
+				<!-- KPI 1: Total Products -->
+				<article class="kpi-card">
+					<div class="kpi-icon icon-products">&#128230;</div>
+					<div class="kpi-data">
+						<span class="kpi-label">Total Store Products</span>
+						<strong class="kpi-value" id="kpi-total-products">0</strong>
+						<span class="kpi-sub">Active catalog items</span>
+					</div>
+				</article>
+
+				<!-- KPI 2: Total Items Sold -->
+				<article class="kpi-card">
+					<div class="kpi-icon icon-sold">&#128722;</div>
+					<div class="kpi-data">
+						<span class="kpi-label">Total Items Sold</span>
+						<strong class="kpi-value" id="kpi-total-sold">0</strong>
+						<span class="kpi-sub">Units via Self-Checkout</span>
+					</div>
+				</article>
+
+				<!-- KPI 3: Total Sales Revenue -->
+				<article class="kpi-card kpi-card-highlight">
+					<div class="kpi-icon icon-revenue">&#128176;</div>
+					<div class="kpi-data">
+						<span class="kpi-label">Total Sales Revenue</span>
+						<strong class="kpi-value" id="kpi-total-revenue">&#8377;0.00</strong>
+						<span class="kpi-sub">Calculated with discounts</span>
+					</div>
+				</article>
+
+				<!-- KPI 4: Low Stock Alert Items -->
+				<article class="kpi-card" id="kpi-card-alerts">
+					<div class="kpi-icon icon-alert">&#9888;&#65039;</div>
+					<div class="kpi-data">
+						<span class="kpi-label">Low Stock Warnings</span>
+						<strong class="kpi-value" id="kpi-low-stock-count">0</strong>
+						<span class="kpi-sub">Items with &le; 5 units left</span>
+					</div>
+				</article>
+			</section>
+
+			<!-- 2. Dual Analytics Columns: Fast-Moving & Low-Stock Alerts -->
+			<div class="analytics-columns">
+				<!-- Column A: Fast-Moving Products Ranking -->
+				<section class="card analytics-card" aria-labelledby="heading-fast-moving">
+					<div class="card-header">
+						<h2 id="heading-fast-moving">&#128640; Fast-Moving Products</h2>
+						<span class="tag-pill tag-sensor">Highest Quantity Sold</span>
+					</div>
+					<p class="section-desc">Top performing supermarket items ordered by total units checked out.</p>
+
+					<div id="top-selling-container" class="ranked-list">
+						<!-- Injected via JavaScript -->
+					</div>
+				</section>
+
+				<!-- Column B: Low-Stock & Restock Needed -->
+				<section class="card analytics-card" aria-labelledby="heading-restock">
+					<div class="card-header">
+						<h2 id="heading-restock">&#9888;&#65039; Restock Needed Alerts</h2>
+						<span class="tag-pill tag-live">Inventory Attention</span>
+					</div>
+					<p class="section-desc">Shelves with 5 or fewer units remaining in MongoDB.</p>
+
+					<div id="restock-alerts-container" class="alerts-list">
+						<!-- Injected via JavaScript -->
+					</div>
+				</section>
+			</div>
+
+			<!-- 3. Complete Store Inventory & Live Restock Table -->
+			<section class="card inventory-management-card" aria-labelledby="heading-inventory">
+				<div class="card-header table-card-header">
+					<div>
+						<h2 id="heading-inventory">&#128203; Live Inventory &amp; Stock Controls</h2>
+						<p class="section-desc">Real-time inventory levels from MongoDB database <code>iotcbp</code>. Click Restock to increment stock instantly.</p>
+					</div>
+					<div class="table-search-group">
+						<label for="inventory-search-input" class="visually-hidden">Search Inventory</label>
+						<input
+							type="text"
+							id="inventory-search-input"
+							placeholder="Search by name, ID, or shelf..."
+							autocomplete="off"
+						>
+					</div>
+				</div>
+
+				<div class="table-responsive">
+					<table class="inventory-table" aria-label="Store products inventory">
+						<thead>
+							<tr>
+								<th scope="col">ID</th>
+								<th scope="col">Product &amp; RFID Badge</th>
+								<th scope="col" class="center-col">Shelf</th>
+								<th scope="col" class="right-col">Pricing &amp; Offer</th>
+								<th scope="col" class="center-col">Current Stock</th>
+								<th scope="col" class="center-col">Total Sold</th>
+								<th scope="col" class="center-col">Status</th>
+								<th scope="col" class="center-col">Actions</th>
+							</tr>
+						</thead>
+						<tbody id="inventory-table-body">
+							<!-- Injected dynamically -->
+						</tbody>
+					</table>
+				</div>
+			</section>
+		</main>
+	</div>
+
+	<!-- =========================================================
+	     3. RESTOCK DIALOG / MODAL
+	========================================================= -->
+	<div id="restock-modal" class="receipt-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="restock-modal-title" hidden>
+		<div class="receipt-card restock-modal-card">
+			<div class="receipt-header">
+				<div class="receipt-badge">&#128230; Warehouse Inbound</div>
+				<h2 id="restock-modal-title" class="receipt-title">Restock Supermarket Inventory</h2>
+				<p class="receipt-subtitle">Increment physical inventory directly in MongoDB <code>iotcbp</code>.</p>
+			</div>
+
+			<form id="restock-form" novalidate>
+				<input type="hidden" id="restock-product-id">
+
+				<div class="restock-target-box">
+					<div class="target-name" id="restock-display-name">Product Name</div>
+					<div class="target-meta" id="restock-display-meta">ID: P001 &bull; Shelf: A1 &bull; Current Stock: 23</div>
+				</div>
+
+				<div class="form-group" style="margin-top: 16px;">
+					<label for="restock-amount-input"><strong>Units to Add to Stock:</strong></label>
+					<div class="restock-amount-selector">
+						<button type="button" class="button button-outline restock-preset-btn" data-amount="5">+5 Units</button>
+						<button type="button" class="button button-outline restock-preset-btn" data-amount="10">+10 Units</button>
+						<button type="button" class="button button-outline restock-preset-btn" data-amount="20">+20 Units</button>
+					</div>
+					<input
+						type="number"
+						id="restock-amount-input"
+						min="1"
+						max="500"
+						value="10"
+						class="input-full"
+						style="margin-top: 10px; font-size: 1.1rem; text-align: center; font-weight: 700;"
+						required
+					>
+				</div>
+
+				<div class="receipt-actions" style="margin-top: 24px;">
+					<button type="button" id="cancel-restock-btn" class="button button-outline">
+						Cancel
+					</button>
+					<button type="submit" id="confirm-restock-btn" class="button button-primary">
+						&#10003; Confirm Restock
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<!-- =========================================================
+	     4. DISCOUNT MANAGEMENT MODAL
+	========================================================= -->
+	<div id="discount-modal" class="receipt-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="discount-modal-title" hidden>
+		<div class="receipt-card discount-modal-card">
+			<div class="receipt-header">
+				<div class="receipt-badge" style="background: #fef3c7; color: #92400e;">&#127991; Promotional Pricing</div>
+				<h2 id="discount-modal-title" class="receipt-title">Update Product Discount</h2>
+				<p class="receipt-subtitle">Set promotional offer (%) for real-time customer cart calculations.</p>
+			</div>
+
+			<form id="discount-form" novalidate>
+				<input type="hidden" id="discount-product-id">
+				<input type="hidden" id="discount-base-price">
+
+				<div class="restock-target-box">
+					<div class="target-name" id="discount-display-name">Product Name</div>
+					<div class="target-meta" id="discount-display-meta">ID: P001 &bull; Shelf: A1 &bull; Base Price: &#8377;50.00</div>
+				</div>
+
+				<div class="form-group" style="margin-top: 16px;">
+					<label for="discount-percent-input"><strong>Promotional Discount (%):</strong></label>
+					<div class="discount-preset-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0 10px;">
+						<button type="button" class="button button-outline button-sm discount-preset-btn" data-percent="0">0% (None)</button>
+						<button type="button" class="button button-outline button-sm discount-preset-btn" data-percent="5">5% OFF</button>
+						<button type="button" class="button button-outline button-sm discount-preset-btn" data-percent="10">10% OFF</button>
+						<button type="button" class="button button-outline button-sm discount-preset-btn" data-percent="15">15% OFF</button>
+						<button type="button" class="button button-outline button-sm discount-preset-btn" data-percent="20">20% OFF</button>
+						<button type="button" class="button button-outline button-sm discount-preset-btn" data-percent="25">25% OFF</button>
+					</div>
+					<div class="input-with-button">
+						<input
+							type="number"
+							id="discount-percent-input"
+							min="0"
+							max="100"
+							value="0"
+							style="font-size: 1.15rem; text-align: center; font-weight: 700;"
+							required
+						>
+					</div>
+					<small class="field-hint">Enter discount value from 0% (regular price) to 100%.</small>
+				</div>
+
+				<!-- Live Price Calculation Box -->
+				<div class="discount-calculation-preview" id="discount-calc-preview">
+					<div class="preview-row">
+						<span>Original Base Price:</span>
+						<strong id="preview-orig-price">&#8377;0.00</strong>
+					</div>
+					<div class="preview-row" style="color: #16a34a;">
+						<span>Customer Discount Savings:</span>
+						<strong id="preview-savings">&#8722; &#8377;0.00</strong>
+					</div>
+					<div class="preview-row preview-grand">
+						<span>Effective Selling Price:</span>
+						<strong id="preview-effective-price" style="color: var(--primary); font-size: 1.25rem;">&#8377;0.00</strong>
+					</div>
+				</div>
+
+				<div class="receipt-actions" style="margin-top: 20px;">
+					<button type="button" id="cancel-discount-btn" class="button button-outline">
+						Cancel
+					</button>
+					<button type="submit" id="confirm-discount-btn" class="button button-primary">
+						&#10003; Save Discount
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<script src="js/manager.js" defer></script>
+</body>
+</html>

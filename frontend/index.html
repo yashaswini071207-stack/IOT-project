@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Smart Cart System | Home</title>
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+	<main class="landing-page">
+		<header class="hero-header">
+			<div class="badge">IoT COURSE PROJECT</div>
+			<h1>Smart Cart System</h1>
+			<p class="hero-subtitle">Automated RFID-Based Supermarket Retail &amp; Inventory Management</p>
+		</header>
+
+		<section class="portal-grid" aria-label="Portal Selection">
+			<article class="portal-card">
+				<div class="portal-icon" aria-hidden="true">&#128722;</div>
+				<h2>Customer Portal</h2>
+				<p>Scan RFID tags, simulate item additions to the cart in real time, view shelf locations, track live subtotals, and review the checkout bill.</p>
+				<ul class="portal-features">
+					<li>Simulated RFID Scanning &amp; Quick-Picker</li>
+					<li>Automatic Quantity &amp; Subtotal Calculation</li>
+					<li>Aisle &amp; Shelf Location Indicators</li>
+				</ul>
+				<a href="customer.html" class="button button-primary">Open Customer View &rarr;</a>
+			</article>
+
+			<article class="portal-card">
+				<div class="portal-icon" aria-hidden="true">&#128202;</div>
+				<h2>Store Manager Portal</h2>
+				<p>Monitor real-time shelf inventory, track low-stock warnings, view product pricing, update stock, and analyze sales performance.</p>
+				<ul class="portal-features">
+					<li>Live Inventory &amp; Stock Levels</li>
+					<li>Product CRUD &amp; Shelf Management</li>
+					<li>Sales &amp; Total Units Sold Metrics</li>
+				</ul>
+				<a href="manager.html" class="button button-secondary">Open Manager View &rarr;</a>
+			</article>
+		</section>
+
+		<footer class="system-status-footer">
+			<div class="status-indicator">
+				<span class="status-dot status-online" id="status-dot" aria-hidden="true"></span>
+				<span id="status-text">Checking backend status...</span>
+			</div>
+		</footer>
+	</main>
+
+	<script>
+		// Live backend and database health indicator
+		async function checkBackendHealth() {
+			const dot = document.getElementById("status-dot");
+			const text = document.getElementById("status-text");
+			try {
+				const res = await fetch("http://localhost:5000/product-api/products");
+				if (res.ok) {
+					dot.className = "status-dot status-online";
+					text.innerHTML = '<strong>Backend Online: Port 5000</strong> &bull; MongoDB Connected (<code>iotcbp</code>)';
+				} else {
+					dot.className = "status-dot status-offline";
+					text.innerHTML = '<strong>Backend Error (' + res.status + ')</strong> &bull; Please check server logs';
+				}
+			} catch (err) {
+				dot.className = "status-dot status-offline";
+				text.innerHTML = '<strong>Backend Offline: Port 5000</strong> &bull; Run <code>node server.js</code>';
+			}
+		}
+		checkBackendHealth();
+	</script>
+</body>
+</html>

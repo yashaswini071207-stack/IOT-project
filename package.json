@@ -1,0 +1,23 @@
+{
+  "name": "iotcbp",
+  "version": "1.0.0",
+  "description": "Smart Cart System - Automated RFID-Based Supermarket Retail & Inventory Management",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "npm --prefix backend start",
+    "dev": "npm --prefix backend run dev",
+    "seed": "npm --prefix backend run seed",
+    "update-tags": "npm --prefix backend run update-tags",
+    "test": "node --check backend/server.js && node --check backend/controllers/product.controller.js && node --check backend/routes/product.routes.js && node --check frontend/js/customer.js && node --check frontend/js/manager.js && node --check backend/update_physical_tags.js"
+  },
+  "keywords": [
+    "iot",
+    "smart-cart",
+    "rfid",
+    "supermarket",
+    "express",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "ISC"
+}

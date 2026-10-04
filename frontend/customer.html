@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Smart Cart | Customer Portal &amp; IoT Scanner</title>
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+	<main class="customer-page">
+		<!-- Top App Header -->
+		<header class="app-header">
+			<div class="nav-links-group" style="display: flex; gap: 8px;">
+				<a href="index.html" class="nav-back-link" title="Return to Home">&larr; Home</a>
+				<a href="manager.html" class="nav-back-link" title="Open Store Manager Portal">&#128274; Manager</a>
+			</div>
+			<div class="header-titles">
+				<p class="eyebrow">SMART CART SYSTEM</p>
+				<h1>Customer View</h1>
+			</div>
+			<div class="cart-pill-badge" id="header-cart-badge" aria-label="Cart items count">
+				<span aria-hidden="true">&#128722;</span>
+				<span id="badge-count">0</span>
+			</div>
+		</header>
+
+		<!-- 1. Strict IoT Cart RFID Sensor Section -->
+		<section class="card scanner-card" aria-labelledby="scanner-heading">
+			<div class="card-header">
+				<h2 id="scanner-heading"><span class="icon" aria-hidden="true">&#128225;</span> Smart Cart Reader (IoT Connected)</h2>
+				<span class="tag-pill tag-sensor">IoT Antenna Active</span>
+			</div>
+			<p class="section-desc">
+				Integrated smart cart reader automatically detects items placed into your digital basket.
+			</p>
+
+			<form id="scanner-form" class="scanner-form" novalidate>
+				<div class="form-group">
+					<label for="rfidInput">Cart Scanner Input</label>
+					<div class="input-with-button">
+						<input
+							type="text"
+							id="rfidInput"
+							name="rfid"
+							placeholder="Awaiting RFID tag swipe..."
+							autocomplete="off"
+							spellcheck="false"
+							required
+						>
+						<button type="submit" id="scanBtn" class="button button-primary">
+							<span aria-hidden="true">&#128246;</span> Scan Item
+						</button>
+					</div>
+				</div>
+			</form>
+
+			<!-- Feedback Alert Message -->
+			<div id="scanFeedback" class="feedback-banner" role="status" aria-live="polite" hidden></div>
+		</section>
+
+		<!-- 2. Supermarket Indoor Route Map & Navigation -->
+		<section class="card map-card" id="map-section" aria-labelledby="map-heading">
+			<div class="card-header">
+				<h2 id="map-heading"><span class="icon" aria-hidden="true">&#128506;&#65039;</span> Supermarket Indoor Route Map</h2>
+				<span class="tag-pill tag-sensor">Indoor Navigation Active</span>
+			</div>
+			<p class="section-desc">Interactive store blueprint. Search any item to highlight its shelf location and view the guided walking path from Entrance to Shelf to Checkout.</p>
+
+			<!-- Map Search & Quick Filter Controls -->
+			<div class="map-controls">
+				<div class="form-group">
+					<label for="map-search-input">Search Product or Shelf to Locate on Map</label>
+					<div class="input-with-button">
+						<input
+							type="text"
+							id="map-search-input"
+							placeholder="Type product name (e.g., Milk, Bread, Biscuits, Soap)..."
+							autocomplete="off"
+						>
+						<button type="button" id="clear-map-search-btn" class="button button-outline" title="Clear map selection">
+							Clear
+						</button>
+					</div>
+				</div>
+
+				<div class="quick-chips-wrapper">
+					<span class="chips-label">Quick Locate on Map:</span>
+					<div class="quick-chips">
+						<button type="button" class="chip-btn map-locate-chip" data-product="Milk">&#128205; Milk (A1)</button>
+						<button type="button" class="chip-btn map-locate-chip" data-product="Bread">&#128205; Bread (A2)</button>
+						<button type="button" class="chip-btn map-locate-chip" data-product="Butter">&#128205; Butter (A3)</button>
+						<button type="button" class="chip-btn map-locate-chip" data-product="Rice">&#128205; Rice (B1)</button>
+						<button type="button" class="chip-btn map-locate-chip" data-product="Biscuits">&#128205; Biscuits (B2)</button>
+						<button type="button" class="chip-btn map-locate-chip" data-product="Cooking Oil">&#128205; Oil (B3)</button>
+						<button type="button" class="chip-btn map-locate-chip" data-product="Cereal">&#128205; Cereal (C1)</button>
+						<button type="button" class="chip-btn map-locate-chip" data-product="Soap">&#128205; Soap (C2)</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Dynamic Route & Shelf Callout Banner -->
+			<div id="map-route-callout" class="map-route-callout" role="status" aria-live="polite" hidden>
+				<div class="callout-header">
+					<div class="callout-title">
+						<span class="callout-icon">&#128205;</span>
+						<div>
+							<strong id="callout-product-name">Product Name</strong>
+							<span id="callout-meta" class="callout-meta">Shelf A1 &bull; Aisle A</span>
+						</div>
+					</div>
+					<span id="callout-status-badge" class="callout-tag">Available In-Store</span>
+				</div>
+				<div class="route-steps">
+					<div class="route-step step-entrance" id="step-entrance"><span class="step-num">1</span> &#128682; Main Entrance</div>
+					<div class="route-arrow">&rarr;</div>
+					<div class="route-step step-corridor" id="step-corridor"><span class="step-num">2</span> &#128694; Central Corridor</div>
+					<div class="route-arrow">&rarr;</div>
+					<div class="route-step step-shelf" id="callout-step-shelf"><span class="step-num">3</span> &#128722; Shelf A1</div>
+					<div class="route-arrow">&rarr;</div>
+					<div class="route-step step-checkout" id="step-checkout"><span class="step-num">4</span> &#128179; Checkout Counters</div>
+				</div>
+				<p class="map-reminder-text">&#8505;&#65039; <em>To purchase, pick item up from this shelf and swipe at the Cart Reader above.</em></p>
+			</div>
+
+			<!-- Interactive Supermarket Blueprint Layout -->
+			<div class="map-canvas-container" id="map-canvas-container">
+				<div class="store-blueprint" id="store-blueprint" role="region" aria-label="Store Floor Plan">
+					<!-- Aisles Grid -->
+					<div class="aisles-container">
+						<!-- Aisle A: Dairy & Bakery -->
+						<div class="aisle-column" data-aisle="A" id="aisle-col-A">
+							<div class="aisle-header">
+								<span class="aisle-letter">AISLE A</span>
+								<span class="aisle-category">Dairy &amp; Bakery</span>
+							</div>
+							<div class="shelves-stack">
+								<div class="shelf-node" id="shelf-A1" data-shelf="A1" role="button" tabindex="0" title="Shelf A1: Milk">
+									<div class="shelf-id-badge">A1</div>
+									<div class="shelf-info">
+										<span class="shelf-item-title">Milk</span>
+									</div>
+									<span class="shelf-pin" aria-hidden="true">&#128205;</span>
+								</div>
+								<div class="shelf-node" id="shelf-A2" data-shelf="A2" role="button" tabindex="0" title="Shelf A2: Bread">
+									<div class="shelf-id-badge">A2</div>
+									<div class="shelf-info">
+										<span class="shelf-item-title">Bread</span>
+									</div>
+									<span class="shelf-pin" aria-hidden="true">&#128205;</span>
+								</div>
+								<div class="shelf-node" id="shelf-A3" data-shelf="A3" role="button" tabindex="0" title="Shelf A3: Butter">
+									<div class="shelf-id-badge">A3</div>
+									<div class="shelf-info">
+										<span class="shelf-item-title">Butter</span>
+									</div>
+									<span class="shelf-pin" aria-hidden="true">&#128205;</span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Corridor Path 1 -->
+						<div class="corridor-path-zone" id="path-corridor-1">
+							<span class="corridor-label">&#128694; Central Corridor</span>
+							<div class="path-dots"></div>
+						</div>
+
+						<!-- Aisle B: Pantry & Snacks -->
+						<div class="aisle-column" data-aisle="B" id="aisle-col-B">
+							<div class="aisle-header">
+								<span class="aisle-letter">AISLE B</span>
+								<span class="aisle-category">Pantry &amp; Snacks</span>
+							</div>
+							<div class="shelves-stack">
+								<div class="shelf-node" id="shelf-B1" data-shelf="B1" role="button" tabindex="0" title="Shelf B1: Rice">
+									<div class="shelf-id-badge">B1</div>
+									<div class="shelf-info">
+										<span class="shelf-item-title">Rice</span>
+									</div>
+									<span class="shelf-pin" aria-hidden="true">&#128205;</span>
+								</div>
+								<div class="shelf-node" id="shelf-B2" data-shelf="B2" role="button" tabindex="0" title="Shelf B2: Biscuits (10% OFF)">
+									<div class="shelf-id-badge">B2</div>
+									<div class="shelf-info">
+										<span class="shelf-item-title">Biscuits</span>
+										<span class="shelf-discount-pill">10% OFF</span>
+									</div>
+									<span class="shelf-pin" aria-hidden="true">&#128205;</span>
+								</div>
+								<div class="shelf-node" id="shelf-B3" data-shelf="B3" role="button" tabindex="0" title="Shelf B3: Cooking Oil (5% OFF)">
+									<div class="shelf-id-badge">B3</div>
+									<div class="shelf-info">
+										<span class="shelf-item-title">Cooking Oil</span>
+										<span class="shelf-discount-pill">5% OFF</span>
+									</div>
+									<span class="shelf-pin" aria-hidden="true">&#128205;</span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Corridor Path 2 -->
+						<div class="corridor-path-zone" id="path-corridor-2">
+							<span class="corridor-label">&#128694; Corridor</span>
+							<div class="path-dots"></div>
+						</div>
+
+						<!-- Aisle C: Breakfast & Personal Care -->
+						<div class="aisle-column" data-aisle="C" id="aisle-col-C">
+							<div class="aisle-header">
+								<span class="aisle-letter">AISLE C</span>
+								<span class="aisle-category">Breakfast &amp; Personal Care</span>
+							</div>
+							<div class="shelves-stack">
+								<div class="shelf-node" id="shelf-C1" data-shelf="C1" role="button" tabindex="0" title="Shelf C1: Cereal (20% OFF)">
+									<div class="shelf-id-badge">C1</div>
+									<div class="shelf-info">
+										<span class="shelf-item-title">Cereal</span>
+										<span class="shelf-discount-pill">20% OFF</span>
+									</div>
+									<span class="shelf-pin" aria-hidden="true">&#128205;</span>
+								</div>
+								<div class="shelf-node" id="shelf-C2" data-shelf="C2" role="button" tabindex="0" title="Shelf C2: Soap">
+									<div class="shelf-id-badge">C2</div>
+									<div class="shelf-info">
+										<span class="shelf-item-title">Soap</span>
+									</div>
+									<span class="shelf-pin" aria-hidden="true">&#128205;</span>
+								</div>
+								<div class="shelf-node shelf-node-empty" id="shelf-C3" data-shelf="C3" title="Shelf C3: Open Stock">
+									<div class="shelf-id-badge">C3</div>
+									<div class="shelf-info">
+										<span class="shelf-item-title">Open Stock</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Bottom Ground Level: Entrance, Walkway, Checkout -->
+					<div class="store-ground-row">
+						<div class="map-zone zone-entrance" id="zone-entrance">
+							<span class="zone-icon">&#128682;</span>
+							<div class="zone-details">
+								<strong>STORE ENTRANCE</strong>
+								<span class="zone-sub">Start of Shopping Route</span>
+							</div>
+						</div>
+						<div class="map-zone zone-walkway" id="zone-walkway">
+							<span class="walkway-line">&#10140; &#10140; Main Walkway Corridor &#10140; &#10140;</span>
+						</div>
+						<div class="map-zone zone-checkout" id="zone-checkout">
+							<span class="zone-icon">&#128179;</span>
+							<div class="zone-details">
+								<strong>CHECKOUT COUNTERS</strong>
+								<span class="zone-sub">Self-Checkout &amp; Exit</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Map Legend -->
+			<div class="map-legend">
+				<div class="legend-item"><span class="legend-dot dot-active"></span> Target Shelf (Pulsing Glow)</div>
+				<div class="legend-item"><span class="legend-dot dot-shelf"></span> Supermarket Shelf</div>
+				<div class="legend-item"><span class="legend-dot dot-entrance"></span> Entrance / Start</div>
+				<div class="legend-item"><span class="legend-dot dot-checkout"></span> Checkout / Exit</div>
+			</div>
+		</section>
+
+		<!-- 3. Active Shopping Cart Section -->
+		<section class="card cart-card" aria-labelledby="cart-heading">
+			<div class="card-header cart-header">
+				<div>
+					<h2 id="cart-heading"><span class="icon" aria-hidden="true">&#128722;</span> Active Smart Cart</h2>
+					<p class="section-desc">Live items currently in your cart. Quantities can be adjusted or removed as you shop.</p>
+				</div>
+				<button type="button" id="clear-cart-btn" class="button button-outline" aria-label="Clear all items in cart" hidden>
+					Clear Cart
+				</button>
+			</div>
+
+			<!-- Empty State -->
+			<div id="empty-cart-view" class="empty-cart-state">
+				<div class="empty-cart-icon" aria-hidden="true">&#128717;</div>
+				<h3>Cart is empty</h3>
+				<p>Scan items using the Smart Cart Reader above to add grocery items to your cart.</p>
+			</div>
+
+			<!-- Cart Items Table -->
+			<div id="cart-table-wrapper" class="cart-table-wrapper" hidden>
+				<table class="cart-table" aria-label="Current cart items">
+					<thead>
+						<tr>
+							<th scope="col">Product</th>
+							<th scope="col" class="center-col">Shelf</th>
+							<th scope="col" class="right-col">Unit Price</th>
+							<th scope="col" class="center-col">Qty</th>
+							<th scope="col" class="right-col">Line Subtotal</th>
+							<th scope="col" class="center-col" aria-label="Remove item"></th>
+						</tr>
+					</thead>
+					<tbody id="cart-table-body">
+						<!-- Dynamically populated by customer.js -->
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<!-- 4. Complete Bill Summary Card with Discounts & Net Total -->
+		<section class="card bill-summary-card" id="bill-summary-card" aria-labelledby="billing-heading">
+			<div class="card-header">
+				<h2 id="billing-heading"><span class="icon" aria-hidden="true">&#129534;</span> Order Bill Summary &amp; Receipt</h2>
+				<span class="tag-pill tag-live">Live IoT Calculated</span>
+			</div>
+			<p class="section-desc">Subtotals, promotional discounts, and net payable amounts calculate instantly.</p>
+
+			<div class="bill-receipt-box">
+				<div class="bill-row">
+					<span class="bill-label">Unique Products:</span>
+					<span id="bill-unique-items" class="bill-value">0</span>
+				</div>
+				<div class="bill-row">
+					<span class="bill-label">Total Items Scanned:</span>
+					<span id="bill-total-units" class="bill-value">0</span>
+				</div>
+				<div class="bill-row">
+					<span class="bill-label">Items Subtotal (Gross):</span>
+					<span id="bill-subtotal" class="bill-value">&#8377;0.00</span>
+				</div>
+				<div class="bill-row bill-discount-row">
+					<span class="bill-label discount-label">Special Discount Savings:</span>
+					<span id="bill-discount-total" class="bill-value discount-value">&#8722; &#8377;0.00</span>
+				</div>
+				<div class="bill-row">
+					<span class="bill-label">Taxes &amp; Store Fees:</span>
+					<span id="bill-tax" class="bill-value">&#8377;0.00 <span class="tax-tag">(Inclusive of GST)</span></span>
+				</div>
+
+				<div class="bill-divider"></div>
+
+				<div class="bill-row bill-grand-row">
+					<span class="bill-grand-label">Grand Total / Net Payable:</span>
+					<strong id="bill-grand-total" class="bill-grand-amount">&#8377;0.00</strong>
+				</div>
+				<p class="tax-inclusive-note" id="bill-savings-note">&#10003; You are saving &#8377;0.00 on this order!</p>
+			</div>
+
+			<div class="bill-actions">
+				<button type="button" id="checkout-btn" class="button button-primary button-full" disabled>
+					<span aria-hidden="true">&#128179;</span> Proceed to Self-Checkout
+				</button>
+			</div>
+
+			<!-- Checkout Notice -->
+			<div id="checkout-feedback" class="feedback-banner feedback-success" role="status" hidden>
+				<strong>Order Confirmed!</strong> Bill paid successfully. Thank you for shopping with Smart Cart!
+			</div>
+		</section>
+	</main>
+
+	<!-- Interactive Dynamic UPI QR Code Payment Modal -->
+	<div id="payment-modal" class="receipt-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="payment-dialog-title" hidden>
+		<div class="receipt-card payment-modal-card">
+			<div class="receipt-header">
+				<div class="receipt-badge payment-badge">&#128179; Digital Self-Checkout</div>
+				<h2 id="payment-dialog-title" class="receipt-title">Scan &amp; Pay via UPI</h2>
+				<p class="receipt-subtitle">Fast, contactless payment powered by NPCI Unified Payments Interface</p>
+			</div>
+
+			<!-- Prominent Payable Amount Box -->
+			<div class="payment-amount-box">
+				<span class="payment-amount-label">Total Payable Amount</span>
+				<strong class="payment-amount-value" id="payment-modal-amount">&#8377;0.00</strong>
+				<div class="payment-savings-pill" id="payment-modal-savings">&#10003; Includes store promotional discounts</div>
+			</div>
+
+			<!-- QR Code & App Logos -->
+			<div class="payment-qr-wrapper">
+				<div class="qr-frame">
+					<img id="upi-qr-image" src="" alt="Scan this UPI QR code to complete payment" width="200" height="200" loading="eager">
+				</div>
+				<p class="qr-instruction-text">Scan this QR code with any UPI app on your smartphone to complete payment.</p>
+				<div class="upi-apps-row">
+					<span class="upi-app-pill app-gpay">&#128308; GPay</span>
+					<span class="upi-app-pill app-phonepe">&#128995; PhonePe</span>
+					<span class="upi-app-pill app-paytm">&#128309; Paytm</span>
+					<span class="upi-app-pill app-bhim">&#128994; BHIM UPI</span>
+				</div>
+				<div class="vpa-display">
+					Store VPA: <code>smartcart@upi</code> &bull; Verified Merchant
+				</div>
+			</div>
+
+			<!-- Action Buttons -->
+			<div class="receipt-actions payment-actions">
+				<button type="button" id="cancel-payment-btn" class="button button-outline">
+					&larr; Return to Cart
+				</button>
+				<button type="button" id="confirm-payment-btn" class="button button-primary button-pay-confirm">
+					&#10003; Confirm &amp; Complete Payment
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Step 6: Official Digital Bill Receipt Modal -->
+	<div id="receipt-modal" class="receipt-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="receipt-dialog-title" hidden>
+		<div class="receipt-card">
+			<div class="receipt-header">
+				<div class="receipt-badge">&#10003; Payment Verified</div>
+				<h2 id="receipt-dialog-title" class="receipt-title">Smart Cart Supermarket</h2>
+				<p class="receipt-subtitle">Official IoT Self-Checkout Tax Invoice</p>
+			</div>
+
+			<div class="receipt-meta-box">
+				<div class="receipt-meta-item">
+					Order ID
+					<strong id="receipt-order-id">ORD-000000</strong>
+				</div>
+				<div class="receipt-meta-item" style="text-align: right;">
+					Date &amp; Time
+					<strong id="receipt-timestamp">--/--/----</strong>
+				</div>
+			</div>
+
+			<table class="receipt-items-table" aria-label="Purchased items invoice">
+				<thead>
+					<tr>
+						<th scope="col">Item</th>
+						<th scope="col" style="text-align: center;">Qty</th>
+						<th scope="col" style="text-align: right;">Price</th>
+						<th scope="col" style="text-align: right;">Subtotal</th>
+					</tr>
+				</thead>
+				<tbody id="receipt-items-body">
+					<!-- Dynamically injected item rows -->
+				</tbody>
+			</table>
+
+			<div class="receipt-totals">
+				<div class="receipt-total-row">
+					<span>Gross Subtotal:</span>
+					<strong id="receipt-subtotal">&#8377;0.00</strong>
+				</div>
+				<div class="receipt-total-row receipt-savings-row">
+					<span>Promotional Discounts:</span>
+					<strong id="receipt-savings">&#8722; &#8377;0.00</strong>
+				</div>
+				<div class="receipt-total-row">
+					<span>Taxes (GST Inclusive):</span>
+					<span>&#8377;0.00</span>
+				</div>
+				<div class="receipt-total-row receipt-grand-row">
+					<span>Total Paid:</span>
+					<strong id="receipt-grand-total">&#8377;0.00</strong>
+				</div>
+			</div>
+
+			<p class="receipt-footer-note">&#128274; Inventory &amp; stock levels automatically updated in database <code>iotcbp</code>.</p>
+
+			<div class="receipt-actions">
+				<button type="button" id="print-receipt-btn" class="button button-outline">
+					&#128424; Print Receipt
+				</button>
+				<button type="button" id="close-receipt-btn" class="button button-primary">
+					Done / New Session
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<script src="js/customer.js" defer></script>
+</body>
+</html>
